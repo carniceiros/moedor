@@ -1,20 +1,13 @@
 // pages/index.js
-import { useRouter } from 'next/router';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 export default function Home() {
-  // NÃO use router.query como fonte da verdade do input
-  const router = useRouter();
-
-  // Pega o ?email= só uma vez no lado do cliente
   const initialEmail = useMemo(() => {
     if (typeof window === 'undefined') return '';
     const q = new URLSearchParams(window.location.search).get('email');
     return typeof q === 'string' ? q : '';
   }, []);
-
   const [email, setEmail] = useState(initialEmail);
-
   const isValid = /\S+@\S+\.\S+/.test(email);
 
   const handleConnect = (e) => {
@@ -24,10 +17,11 @@ export default function Home() {
   };
 
   return (
-    <main style={{ maxWidth: 680, margin: '4rem auto', fontFamily: 'bebas neue' }}>
+    <main style={{ maxWidth: 680, margin: '4rem auto', fontFamily: 'system-ui' }}>
       <h1 style={{ textAlign: 'center' }}>Conectar Discord</h1>
-      <p style={{ textAlign: 'center' }}>
-        Faaaaaaaaaaaaaala Carniceiro! <br> Se você acabou de comprar um plano no Hotmart, use esta página para vincular sua conta do Discord.
+      <p style={{ textAlign: 'center', lineHeight: 1.6 }}>
+        Se você acabou de comprar um plano no Hotmart, use esta página para vincular sua conta do Discord
+        e receber automaticamente o cargo correspondente.
       </p>
 
       <form onSubmit={handleConnect} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>
