@@ -1,0 +1,84 @@
+/*
+ * CSS Module for the login page.
+ *
+ * Provides a full-screen background with the Moedor artwork,
+ * centers the login card, and styles the form elements.
+ */
+
+.background {
+  /* Use the Moedor artwork as a full-screen background */
+  background-image: url('/images/moedorhorizontal.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-shadow: 0 0 5px rgba(0, 0, 0, 0.7);
+}
+
+.card {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 2rem;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.logo {
+  width: 200px;
+  margin: 0 auto 1rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.input {
+  width: 100%;
+  /* Ensure the element's width accounts for padding and border so
+     it aligns perfectly with the button. Without border-box, the
+     padding increases the rendered width, causing misalignment. */
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  border-radius: 4px;
+  border: none;
+  font-size: 1rem;
+}
+
+.button {
+  width: 100%;
+  /* Align the rendered width with the input field by including padding
+     and border in the element's total width. */
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+  background-color: #d62828;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.button:disabled {
+  background-color: rgba(214, 40, 40, 0.5);
+  cursor: not-allowed;
+}
+
+.button:hover:not(:disabled) {
+  background-color: #a71d31;
+}
