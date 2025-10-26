@@ -1,68 +1,99 @@
 import { useEffect, useState } from 'react';
-import styles from './loginStyles.module.css';
 
 /**
- * Página principal (login)
+ * Página principal (login) com estilos inline.
  *
- * Esta página permite ao usuário informar o email utilizado na compra no Hotmart e
- * iniciar o fluxo OAuth2 de conexão com o Discord. Ao contrário da versão inicial,
- * o campo de email permanece visível e editável o tempo todo. Se o link contiver
- * `?email=...`, esse valor será usado como preenchimento inicial, mas o usuário
- * pode alterá-lo livremente. O design utiliza um fundo personalizado com a arte
- * do Moedor e um cartão central para maior contraste.
+ * Esta versão não depende de CSS Modules, tornando o build mais simples. Ela
+ * renderiza uma página de fundo com o tema do Moedor e um cartão sobreposto
+ * contendo o formulário de e‑mail. O e‑mail é pré‑preenchido a partir do parâmetro
+ * `?email=` na URL, quando presente, e pode ser editado livremente pelo usuário.
  */
 export default function Home() {
-  // Estado local para o email digitado
   const [email, setEmail] = useState('');
 
-  // Preenche o estado inicial com o parâmetro "email" da URL, se houver, apenas uma vez
+  // Preenche o estado inicial com o parâmetro "email" da URL, se houver
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const emailParam = params.get('email');
-      if (emailParam) {
-        setEmail(emailParam);
-      }
+      const initialEmail = params.get('email');
+      if (initialEmail) setEmail(initialEmail);
     }
   }, []);
 
-  // Verifica rapidamente se o email contém um "@" simples (pode ser aprimorado)
   const isEmailValid = email.includes('@');
 
-  // Redireciona para o login OAuth2 do Discord passando o email como state
-  const handleConnect = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
+    if (!isEmailValid) return;
     const state = encodeURIComponent(email);
     window.location.href = `/api/discord/login?state=${state}`;
   };
 
   return (
-    <div className={styles.background}>
-      <div className={styles.card}>
-        {/* Logo: usa a versão vertical para uma boa proporção */}
+    <div
+      style={{
+        backgroundImage: "url('/images/moedorhorizontal.jpg')",
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <div
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          padding: '2rem',
+          borderRadius: '8px',
+          width: '100%',
+          maxWidth: '400px',
+          textAlign: 'center',
+          color: '#fff',
+          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
+        }}
+      >
         <img
           src="/images/moedorvertical.jpg"
           alt="Moedor logo"
-          className={styles.logo}
+          style={{ width: '200px', margin: '0 auto 1rem' }}
         />
-        <h1 className={styles.title}>Conectar Discord</h1>
-        <p className={styles.subtitle}>
+        <h1 style={{ marginBottom: '0.5rem' }}>Conectar Discord</h1>
+        <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
           Se você acabou de comprar um plano no Hotmart, informe o email usado na compra para
           vincular sua conta do Discord e receber automaticamente o cargo correspondente.
         </p>
-        <form onSubmit={handleConnect}>
+        <form onSubmit={handleSubmit}>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className={styles.input}
             placeholder="seu_email@dominio.com"
             autoComplete="email"
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              marginBottom: '1rem',
+              borderRadius: '4px',
+              border: 'none',
+              fontSize: '1rem',
+            }}
           />
           <button
             type="submit"
-            className={styles.button}
             disabled={!isEmailValid}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '4px',
+              border: 'none',
+              fontSize: '1rem',
+              fontWeight: 'bold',
+              color: '#fff',
+              backgroundColor: isEmailValid ? '#d62828' : 'rgba(214, 40, 40, 0.5)',
+              cursor: isEmailValid ? 'pointer' : 'not-allowed',
+              transition: 'background-color 0.2s ease-in-out',
+            }}
           >
             Conectar com Discord
           </button>
