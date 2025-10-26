@@ -17,9 +17,45 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Se o email (state) for fornecido, você poderia validá-lo contra um banco de dados de compradores.
-  // Contudo, por simplicidade e conforme solicitado, vamos permitir que qualquer e‑mail avance.
-  // Assim, todos que concluírem o login receberão o cargo "Carniceiro" por padrão.  
+  // Se um email foi fornecido (no estado), tente validá-lo contra o banco de registros.
+  // O banco de registros é preenchido a partir do Webhook da Hotmart. Apenas emails
+  // com status de assinatura ativo (APPROVED, PAID ou ACTIVE) serão autorizados a
+  // iniciar o fluxo de login. Emails desconhecidos ou com assinatura pendente/cancelada
+  // receberão uma mensagem de erro.
+  const buyerEmail = state ? decodeURIComponent(state) : '';
+  if (buyerEmail) {
+    // Tenta ler o arquivo de banco de dados JSON. Use DB_PATH ou /tmp/members.json como padrão.
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const dbPath = process.env.DB_PATH || path.default.join('/tmp', 'members.json');
+    async function readUsers(filePath) {
+      try {
+        const data = await fs.default.readFile(filePath, 'utf8');
+        return JSON.parse(data);
+      } catch (e) {
+        return [];
+      }
+    }
+    const users = await readUsers(dbPath);
+    // Procura um usuário com esse email e status de assinatura ativa
+    const activeStatuses = ['APPROVED', 'PAID', 'ACTIVE'];
+    const found = users.find(
+      (u) => u.hotmart_email === buyerEmail && activeStatuses.includes(String(u.status).toUpperCase())
+    );
+    if (!found) {
+      // Não há assinatura ativa para este e‑mail; informa erro ao usuário.
+      res.statusCode = 400;
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.end(
+        `<html><body style="font-family: sans-serif; text-align: center; padding: 2rem;">
+          <h1>Email não encontrado ou assinatura inativa</h1>
+          <p>O email <strong>${buyerEmail}</strong> não corresponde a uma assinatura ativa do Hotmart.</p>
+          <p>Verifique o endereço digitado ou aguarde a confirmação do pagamento.</p>
+        </body></html>`
+      );
+      return;
+    }
+  }
 
   // Construindo a URL de autorização do Discord
   const authUrl =
