@@ -27,7 +27,7 @@ export default function Home() {
     <main style={{ maxWidth: 680, margin: '4rem auto', fontFamily: 'bebas neue' }}>
       <h1 style={{ textAlign: 'center' }}>Conectar Discord</h1>
       <p style={{ textAlign: 'center' }}>
-        Faaaaala Carniceiro! Se você acabou de comprar um plano no Hotmart, use esta página para vincular sua conta do Discord.
+        Faaaaaaaaaaaaaala Carniceiro! <br> Se você acabou de comprar um plano no Hotmart, use esta página para vincular sua conta do Discord.
       </p>
 
       <form onSubmit={handleConnect} style={{ display: 'flex', gap: 8, justifyContent: 'center', marginTop: 24 }}>
