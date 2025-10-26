@@ -73,7 +73,7 @@ export default function Home() {
             placeholder="seu_email@dominio.com"
             autoComplete="email"
             style={{
-              width: '100%',
+              width: '80%',
               padding: '0.75rem 1rem',
               marginBottom: '1rem',
               borderRadius: '4px',
