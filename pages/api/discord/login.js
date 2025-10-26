@@ -17,43 +17,101 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Se um email foi fornecido (no estado), tente validá-lo contra o banco de registros.
-  // O banco de registros é preenchido a partir do Webhook da Hotmart. Apenas emails
-  // com status de assinatura ativo (APPROVED, PAID ou ACTIVE) serão autorizados a
-  // iniciar o fluxo de login. Emails desconhecidos ou com assinatura pendente/cancelada
-  // receberão uma mensagem de erro.
+  // Se um e‑mail foi fornecido (state), valide-o consultando a API da Hotmart em tempo real.
+  // Para isso é necessário configurar as seguintes variáveis de ambiente:
+  // HOTMART_CLIENT_ID, HOTMART_CLIENT_SECRET e HOTMART_BASIC.
+  // A validação consulta as assinaturas ativas (status ACTIVE, PAID, APPROVED) e filtra
+  // por subscriber_email. Caso o e‑mail não seja encontrado com status ativo, o login
+  // é bloqueado. Se as variáveis de ambiente não estiverem configuradas, a verificação
+  // é ignorada (permitindo qualquer e‑mail).
   const buyerEmail = state ? decodeURIComponent(state) : '';
   if (buyerEmail) {
-    // Tenta ler o arquivo de banco de dados JSON. Use DB_PATH ou /tmp/members.json como padrão.
-    const fs = await import('fs/promises');
-    const path = await import('path');
-    const dbPath = process.env.DB_PATH || path.default.join('/tmp', 'members.json');
-    async function readUsers(filePath) {
+    // Permite ignorar a verificação caso as credenciais da Hotmart estejam ausentes.
+    const hasHotmartCreds =
+      process.env.HOTMART_CLIENT_ID &&
+      process.env.HOTMART_CLIENT_SECRET &&
+      process.env.HOTMART_BASIC;
+
+    if (hasHotmartCreds) {
       try {
-        const data = await fs.default.readFile(filePath, 'utf8');
-        return JSON.parse(data);
-      } catch (e) {
-        return [];
-      }
-    }
-    const users = await readUsers(dbPath);
-    // Procura um usuário com esse email e status de assinatura ativa
-    const activeStatuses = ['APPROVED', 'PAID', 'ACTIVE'];
-    const found = users.find(
-      (u) => u.hotmart_email === buyerEmail && activeStatuses.includes(String(u.status).toUpperCase())
-    );
-    if (!found) {
-      // Não há assinatura ativa para este e‑mail; informa erro ao usuário.
-      res.statusCode = 400;
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.end(
-        `<html><body style="font-family: sans-serif; text-align: center; padding: 2rem;">
+        // Passo 1: obter access_token via client_credentials
+        const tokenRes = await fetch(
+          'https://api-sec-vlc.hotmart.com/security/oauth/token',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Basic ${process.env.HOTMART_BASIC}`,
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+              grant_type: 'client_credentials',
+              client_id: process.env.HOTMART_CLIENT_ID,
+              client_secret: process.env.HOTMART_CLIENT_SECRET,
+            }).toString(),
+          }
+        );
+        if (!tokenRes.ok) {
+          throw new Error('Falha ao obter token da Hotmart');
+        }
+        const tokenData = await tokenRes.json();
+        const accessToken = tokenData.access_token;
+        if (!accessToken) {
+          throw new Error('Token de acesso ausente');
+        }
+
+        // Passo 2: buscar todas as assinaturas com status ativos.
+        // Consultamos status ACTIVE, APPROVED e PAID separadamente por limitações de filtros.
+        const statusParams = ['ACTIVE', 'APPROVED', 'PAID'];
+        let subscriberFound = false;
+        for (const status of statusParams) {
+          const subsRes = await fetch(
+            `https://developers.hotmart.com/payments/api/v1/subscriptions?status=${encodeURIComponent(
+              status
+            )}`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+                Accept: 'application/json',
+              },
+            }
+          );
+          if (!subsRes.ok) continue;
+          const subsData = await subsRes.json();
+          const subscriptions = Array.isArray(subsData) ? subsData : subsData.data || [];
+          // Verifica se o email aparece em alguma assinatura ativa
+          const match = subscriptions.find((s) => {
+            const emailField =
+              s.subscriber_email ||
+              s.buyer_email ||
+              (s.subscriber && s.subscriber.email) ||
+              (s.buyer && s.buyer.email);
+            return (
+              typeof emailField === 'string' &&
+              emailField.toLowerCase() === buyerEmail.toLowerCase()
+            );
+          });
+          if (match) {
+            subscriberFound = true;
+            break;
+          }
+        }
+        if (!subscriberFound) {
+          // O email não corresponde a uma assinatura ativa
+          res.statusCode = 400;
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          res.end(
+            `<html><body style="font-family: sans-serif; text-align: center; padding: 2rem;">
           <h1>Email não encontrado ou assinatura inativa</h1>
           <p>O email <strong>${buyerEmail}</strong> não corresponde a uma assinatura ativa do Hotmart.</p>
           <p>Verifique o endereço digitado ou aguarde a confirmação do pagamento.</p>
         </body></html>`
-      );
-      return;
+          );
+          return;
+        }
+      } catch (err) {
+        // Em caso de erro de rede ou autenticação, continua sem bloquear
+        console.error('Erro na consulta à Hotmart:', err);
+      }
     }
   }
 
