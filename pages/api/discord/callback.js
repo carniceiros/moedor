@@ -126,10 +126,14 @@ export default async function handler(req, res) {
     // Salva alterações no banco
     await writeUsers(dbPath, users);
 
-    // Se já temos um status salvo, definimos cargos no Discord
-    const userStatus = (userRecord.status || '').toUpperCase();
+    // Sempre atribui o cargo ativo (Carniceiro) após o login.
+    // Presumimos que quem se autenticou pagou a assinatura. Posteriormente,
+    // quando o status de pagamento mudar no webhook do Hotmart, o cargo
+    // será ajustado (por exemplo, para "Pendente").
     const roleActive = process.env.ROLE_CARNICEIRO_ID;
     const rolePending = process.env.ROLE_PENDENTE_ID;
+
+    // Funções auxiliares para adicionar e remover cargos
     async function addRole(roleId) {
       if (!roleId) return;
       await discordRequest(
@@ -154,15 +158,10 @@ export default async function handler(req, res) {
         console.warn('Erro ao remover cargo', roleId, err.message);
       });
     }
-    if (userStatus) {
-      if (['APPROVED', 'PAID', 'ACTIVE'].includes(userStatus)) {
-        await addRole(roleActive);
-        await removeRole(rolePending);
-      } else {
-        await addRole(rolePending);
-        await removeRole(roleActive);
-      }
-    }
+
+    // Dá o cargo "Carniceiro" e remove o cargo "Pendente", se existir
+    await addRole(roleActive);
+    await removeRole(rolePending);
     // Retorna uma resposta HTML
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.status(200).send(
