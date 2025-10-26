@@ -32,7 +32,8 @@ export default function Home() {
   return (
     <div
       style={{
-        backgroundImage: "url('/images/moedorhorizontal.jpg')",
+        // Use the full meat-and-fire background provided by the user
+        backgroundImage: "url('/images/background.jpg')",
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         minHeight: '100vh',
@@ -54,9 +55,10 @@ export default function Home() {
         }}
       >
         <img
-          src="/images/moedorvertical.jpg"
+          src="/images/logo-white.png"
           alt="Moedor logo"
-          style={{ width: '200px', margin: '0 auto 1rem' }}
+          // O logo branco fica fixo acima do formulário e maior para dar destaque
+          style={{ width: '260px', margin: '0 auto 1rem' }}
         />
         <h1 style={{ marginBottom: '0.5rem' }}>Conectar Discord</h1>
         <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
