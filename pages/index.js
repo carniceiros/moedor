@@ -60,7 +60,7 @@ export default function Home() {
           // O logo branco fica fixo acima do formulário e maior para dar destaque
           style={{ width: '260px', margin: '0 auto 1rem' }}
         />
-        <h1 style={{ marginBottom: '0.5rem' }}>Conectar Discord</h1>
+        <h1 style={{ marginBottom: '0.5rem' }}>CONECTAR AO DISCORD</h1>
         <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
           Se você é membro do MOEDOR, informe o email usado na compra para
           vincular sua conta do Discord e receber automaticamente o cargo correspondente.
