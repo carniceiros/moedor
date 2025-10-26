@@ -60,9 +60,9 @@ export default function Home() {
           // O logo branco fica fixo acima do formulário e maior para dar destaque
           style={{ width: '260px', margin: '0 auto 1rem' }}
         />
-        <h1 style={{ marginBottom: '0.5rem' }}>CONECTAR DISCORD</h1>
+        <h1 style={{ marginBottom: '0.5rem' }}>Conectar Discord</h1>
         <p style={{ fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-          Se você acabou de comprar um plano no Hotmart, informe o email usado na compra para
+          Se você é membro do MOEDOR, informe o email usado na compra para
           vincular sua conta do Discord e receber automaticamente o cargo correspondente.
         </p>
         <form onSubmit={handleSubmit}>
@@ -73,7 +73,11 @@ export default function Home() {
             placeholder="seu_email@dominio.com"
             autoComplete="email"
             style={{
-              width: '80%',
+              width: '100%',
+              /* Use border-box so padding is included in the width. Without this,
+               * the element's rendered width can exceed that of the button and
+               * misalign within the card. */
+              boxSizing: 'border-box',
               padding: '0.75rem 1rem',
               marginBottom: '1rem',
               borderRadius: '4px',
@@ -86,6 +90,8 @@ export default function Home() {
             disabled={!isEmailValid}
             style={{
               width: '100%',
+              /* Match the input by including padding and border in the total width */
+              boxSizing: 'border-box',
               padding: '0.75rem 1rem',
               borderRadius: '4px',
               border: 'none',

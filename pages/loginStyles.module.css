@@ -47,6 +47,10 @@
 
 .input {
   width: 100%;
+  /* Ensure the element's width accounts for padding and border so
+     it aligns perfectly with the button. Without border-box, the
+     padding increases the rendered width, causing misalignment. */
+  box-sizing: border-box;
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
   border-radius: 4px;
@@ -56,6 +60,9 @@
 
 .button {
   width: 100%;
+  /* Align the rendered width with the input field by including padding
+     and border in the element's total width. */
+  box-sizing: border-box;
   padding: 0.75rem 1rem;
   background-color: #d62828;
   border: none;
